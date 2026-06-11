@@ -1,0 +1,56 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - FinanceTracker</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- FontAwesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+<body class="auth-wrapper">
+    <div class="auth-card text-center">
+        <div class="mb-4">
+            <h2 class="auth-title fw-bold text-white"><i class="fa-solid fa-wallet text-primary me-2"></i>FinanceTracker</h2>
+            <p class="text-secondary mt-1">Manage your wealth, expenses, and savings goals</p>
+        </div>
+
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-danger border-0 bg-danger text-white py-2 mb-3" role="alert" style="font-size: 0.85rem;">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        <form method="POST" class="text-start">
+            {% csrf_token %}
+            
+            <div class="mb-3">
+                <label for="id_username" class="form-label text-light" style="font-size: 0.85rem;">Username</label>
+                <div class="input-group">
+                    <span class="input-group-text auth-input border-end-0"><i class="fa-solid fa-user text-secondary"></i></span>
+                    <input type="text" name="username" id="id_username" class="form-control auth-input border-start-0" required placeholder="Enter username">
+                </div>
+            </div>
+
+            <div class="mb-4">
+                <label for="id_password" class="form-label text-light" style="font-size: 0.85rem;">Password</label>
+                <div class="input-group">
+                    <span class="input-group-text auth-input border-end-0"><i class="fa-solid fa-lock text-secondary"></i></span>
+                    <input type="password" name="password" id="id_password" class="form-control auth-input border-start-0" required placeholder="Enter password">
+                </div>
+            </div>
+
+            <button type="submit" class="btn btn-primary-custom w-100 py-2.5 mb-3 fw-bold">Sign In</button>
+        </form>
+
+        <p class="text-secondary m-0" style="font-size: 0.9rem;">
+            Don't have an account? <a href="{% url 'register' %}" class="text-primary fw-semibold text-decoration-none">Sign Up</a>
+        </p>
+    </div>
+</body>
+</html>

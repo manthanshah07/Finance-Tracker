@@ -1,0 +1,140 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Expenses - FinanceTracker{% endblock %}
+
+{% block content %}
+<div class="container-fluid p-0">
+    <div class="d-flex align-items-center justify-content-between mb-4">
+        <h3 class="fw-bold m-0">Daily Expenses</h3>
+        <div class="d-flex gap-2">
+            <!-- CSV Export -->
+            <a href="{% url 'export_expenses_csv' %}" class="btn btn-outline-secondary">
+                <i class="fa-solid fa-file-csv me-2"></i>Export CSV
+            </a>
+            <!-- PDF Statement -->
+            <a href="{% url 'generate_pdf_report' %}" class="btn btn-outline-primary">
+                <i class="fa-solid fa-file-pdf me-2"></i>Export PDF
+            </a>
+            <!-- Expense Add Button -->
+            <a href="{% url 'expense_add' %}" class="btn btn-primary-custom">
+                <i class="fa-solid fa-plus me-2"></i>Add Expense
+            </a>
+        </div>
+    </div>
+
+    <!-- Stats & Filters Row -->
+    <div class="row g-4 mb-4">
+        <!-- Filters panel -->
+        <div class="col-lg-8">
+            <div class="finance-card">
+                <h6 class="fw-bold mb-3 text-secondary">Search & Filter</h6>
+                <form method="GET" class="row g-2">
+                    <div class="col-md-4">
+                        <input type="text" name="search" class="form-control" placeholder="Search by name..." value="{{ search_query }}">
+                    </div>
+                    <div class="col-md-3">
+                        <select name="category" class="form-select">
+                            <option value="">All Categories</option>
+                            {% for cat_val, cat_lbl in categories %}
+                                <option value="{{ cat_val }}" {% if selected_category == cat_val %}selected{% endif %}>{{ cat_lbl }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <input type="date" name="date_from" class="form-control" title="From Date" value="{{ date_from }}">
+                    </div>
+                    <div class="col-md-2">
+                        <input type="date" name="date_to" class="form-control" title="To Date" value="{{ date_to }}">
+                    </div>
+                    <div class="col-md-1">
+                        <button type="submit" class="btn btn-primary-custom w-100 px-0" title="Apply Filters"><i class="fa-solid fa-filter"></i></button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Import panel & Totals -->
+        <div class="col-lg-4">
+            <div class="finance-card">
+                <h6 class="fw-bold mb-3 text-secondary">CSV Import</h6>
+                <form method="POST" action="{% url 'import_expenses_csv' %}" enctype="multipart/form-data" class="d-flex gap-2">
+                    {% csrf_token %}
+                    <input type="file" name="csv_file" class="form-control form-control-sm" required accept=".csv">
+                    <button type="submit" class="btn btn-sm btn-primary-custom fw-semibold">Upload</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Expenses Table Card -->
+    <div class="finance-card p-0 overflow-hidden mb-4">
+        <div class="px-4 py-3 border-bottom d-flex align-items-center justify-content-between" style="border-color: var(--border-color) !important;">
+            <h5 class="fw-bold m-0">Expenses History</h5>
+            <span class="fw-bold text-primary">Total: {{ currency_symbol }}{{ total_amount|floatformat:2 }}</span>
+        </div>
+        
+        <div class="table-responsive">
+            <table class="table align-middle">
+                <thead>
+                    <tr>
+                        <th>Expense Name</th>
+                        <th>Category</th>
+                        <th>Amount</th>
+                        <th>Date</th>
+                        <th>Notes</th>
+                        <th class="text-end">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for expense in expenses %}
+                        <tr>
+                            <td>
+                                <span class="fw-bold" style="font-size: 0.95rem;">{{ expense.name }}</span>
+                            </td>
+                            <td>
+                                <span class="badge badge-category 
+                                    {% if expense.category == 'Food' %}bg-danger
+                                    {% elif expense.category == 'Travel' %}bg-primary
+                                    {% elif expense.category == 'Shopping' %}bg-success
+                                    {% elif expense.category == 'Entertainment' %}bg-warning text-dark
+                                    {% elif expense.category == 'Education' %}bg-info text-dark
+                                    {% elif expense.category == 'Bills' %}bg-secondary
+                                    {% else %}bg-dark
+                                    {% endif %}">
+                                    {{ expense.category }}
+                                </span>
+                            </td>
+                            <td class="fw-bold text-danger">
+                                -{{ currency_symbol }}{{ expense.amount|floatformat:2 }}
+                            </td>
+                            <td>
+                                {{ expense.date|date:"Y-m-d" }}
+                            </td>
+                            <td class="text-secondary" style="font-size: 0.85rem;">
+                                {{ expense.notes|default:"-" }}
+                            </td>
+                            <td class="text-end">
+                                <a href="{% url 'expense_edit' expense.pk %}" class="btn btn-sm btn-outline-secondary me-1" title="Edit">
+                                    <i class="fa-solid fa-pen"></i>
+                                </a>
+                                <a href="{% url 'expense_delete' expense.pk %}" class="btn btn-sm btn-outline-danger" title="Delete">
+                                    <i class="fa-solid fa-trash"></i>
+                                </a>
+                            </td>
+                        </tr>
+                    {% empty %}
+                        <tr>
+                            <td colspan="6" class="text-center py-5 text-secondary">
+                                <i class="fa-solid fa-wallet mb-3" style="font-size: 3rem;"></i>
+                                <p class="m-0 fw-semibold">No expenses found matching the search criteria.</p>
+                                <a href="{% url 'expense_add' %}" class="btn btn-sm btn-primary mt-3">Add First Expense</a>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

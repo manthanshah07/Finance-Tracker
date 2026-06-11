@@ -1,0 +1,179 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Dashboard - FinanceTracker{% endblock %}
+
+{% block content %}
+<div class="container-fluid p-0">
+    <div class="d-flex align-items-center justify-content-between mb-4">
+        <h3 class="m-0 font-weight-bold">Financial Summary</h3>
+        <a href="{% url 'generate_pdf_report' %}" class="btn btn-primary-custom">
+            <i class="fa-solid fa-file-pdf me-2"></i> Export PDF Report
+        </a>
+    </div>
+
+    <!-- Alert triggers -->
+    {% if budget_alert %}
+        <div class="alert alert-danger border-0 shadow-sm mb-4" role="alert">
+            <i class="fa-solid fa-bell me-2"></i> <strong>Budget Alert!</strong> You've exceeded your monthly limit of <strong>{{ currency_symbol }}{{ budget_limit|floatformat:2 }}</strong>. Current spending: <strong>{{ currency_symbol }}{{ curr_month_expenses|floatformat:2 }}</strong>.
+        </div>
+    {% endif %}
+
+    <!-- Top Cards Row -->
+    <div class="row g-4 mb-4">
+        <!-- Card 1: Net Worth -->
+        <div class="col-xl-3 col-md-6">
+            <div class="finance-card card-primary">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <span class="text-secondary text-uppercase fw-semibold" style="font-size: 0.75rem;">Estimated Net Worth</span>
+                        <h3 class="mt-2 mb-1 fw-bold">{{ currency_symbol }}{{ net_worth|floatformat:2 }}</h3>
+                        <span class="text-secondary" style="font-size: 0.8rem;">Assets minus expenses</span>
+                    </div>
+                    <div class="card-icon card-icon-primary">
+                        <i class="fa-solid fa-sack-dollar"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Card 2: Expenses -->
+        <div class="col-xl-3 col-md-6">
+            <div class="finance-card card-danger">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <span class="text-secondary text-uppercase fw-semibold" style="font-size: 0.75rem;">Monthly Spending</span>
+                        <h3 class="mt-2 mb-1 fw-bold">{{ currency_symbol }}{{ curr_month_expenses|floatformat:2 }}</h3>
+                        {% if budget_limit > 0 %}
+                            <div class="d-flex align-items-center gap-2 mt-2" style="width: 130px;">
+                                <div class="progress w-100" style="height: 6px;">
+                                    <div class="progress-bar {% if budget_alert %}bg-danger{% else %}bg-primary{% endif %}" role="progressbar" style="width: {{ budget_percentage }}%" aria-valuenow="{{ budget_percentage }}" aria-valuemin="0" aria-valuemax="100"></div>
+                                </div>
+                                <span class="fw-bold" style="font-size: 0.75rem; color: var(--text-secondary);">{{ budget_percentage }}%</span>
+                            </div>
+                        {% else %}
+                            <span class="text-secondary" style="font-size: 0.8rem;">Limit: Not set</span>
+                        {% endif %}
+                    </div>
+                    <div class="card-icon card-icon-danger">
+                        <i class="fa-solid fa-credit-card"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Card 3: Investments -->
+        <div class="col-xl-3 col-md-6">
+            <div class="finance-card {% if investment_profit_loss >= 0 %}card-success{% else %}card-danger{% endif %}">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <span class="text-secondary text-uppercase fw-semibold" style="font-size: 0.75rem;">Investment Portfolio</span>
+                        <h3 class="mt-2 mb-1 fw-bold">{{ currency_symbol }}{{ total_current_value|floatformat:2 }}</h3>
+                        {% if total_invested > 0 %}
+                            <span class="{% if investment_profit_loss >= 0 %}text-success{% else %}text-danger{% endif %} fw-bold" style="font-size: 0.8rem;">
+                                <i class="fa-solid {% if investment_profit_loss >= 0 %}fa-caret-up{% else %}fa-caret-down{% endif %} me-1"></i>
+                                {{ investment_pl_pct|floatformat:1 }}% ({{ currency_symbol }}{{ investment_profit_loss|floatformat:0 }})
+                            </span>
+                        {% else %}
+                            <span class="text-secondary" style="font-size: 0.8rem;">No investments found</span>
+                        {% endif %}
+                    </div>
+                    <div class="card-icon {% if investment_profit_loss >= 0 %}card-icon-success{% else %}card-icon-danger{% endif %}">
+                        <i class="fa-solid fa-chart-line-up"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Card 4: Savings Goals -->
+        <div class="col-xl-3 col-md-6">
+            <div class="finance-card card-warning">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <span class="text-secondary text-uppercase fw-semibold" style="font-size: 0.75rem;">Savings Target Progress</span>
+                        <h3 class="mt-2 mb-1 fw-bold">{{ avg_goal_progress }}%</h3>
+                        <span class="text-secondary" style="font-size: 0.8rem;">{{ completed_goals }}/{{ total_goals_count }} goals completed</span>
+                    </div>
+                    <div class="card-icon card-icon-warning">
+                        <i class="fa-solid fa-bullseye"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts Row 1 -->
+    <div class="row g-4 mb-4">
+        <!-- Expenses category breakdown -->
+        <div class="col-lg-5">
+            <div class="finance-card h-100">
+                <h5 class="fw-bold mb-4">Expense Categories</h5>
+                <div class="chart-container">
+                    <canvas id="expenseCategoryChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Monthly expense bar chart -->
+        <div class="col-lg-7">
+            <div class="finance-card h-100">
+                <h5 class="fw-bold mb-4">Monthly Expenses (Last 6 Months)</h5>
+                <div class="chart-container">
+                    <canvas id="expenseMonthlyChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts Row 2 & Goals -->
+    <div class="row g-4">
+        <!-- Investment growth line chart -->
+        <div class="col-lg-7">
+            <div class="finance-card h-100">
+                <h5 class="fw-bold mb-4">Investment Growth & Valuation</h5>
+                <div class="chart-container">
+                    <canvas id="investmentGrowthChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Savings progress detail list -->
+        <div class="col-lg-5">
+            <div class="finance-card h-100">
+                <div class="d-flex align-items-center justify-content-between mb-4">
+                    <h5 class="fw-bold m-0">Active Goals</h5>
+                    <a href="{% url 'goal_list' %}" class="btn btn-sm btn-outline-primary" style="font-size: 0.8rem;">View All</a>
+                </div>
+                <div class="d-flex flex-column gap-3">
+                    {% for item in goals|slice:":4" %}
+                        <div>
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <span class="fw-bold" style="font-size: 0.9rem;">{{ item.goal.name }}</span>
+                                <span class="text-secondary fw-semibold" style="font-size: 0.85rem;">
+                                    {{ currency_symbol }}{{ item.goal.current_savings|floatformat:0 }} / {{ currency_symbol }}{{ item.goal.target_amount|floatformat:0 }}
+                                </span>
+                            </div>
+                            <div class="progress" style="height: 8px;">
+                                <div class="progress-bar bg-warning" role="progressbar" style="width: {{ item.pct }}%" aria-valuenow="{{ item.pct }}" aria-valuemin="0" aria-valuemax="100"></div>
+                            </div>
+                        </div>
+                    {% empty %}
+                        <div class="text-center py-4 text-secondary">
+                            <i class="fa-solid fa-folder-open mb-2" style="font-size: 2rem;"></i>
+                            <p class="m-0" style="font-size: 0.9rem;">No active savings goals found.</p>
+                            <a href="{% url 'goal_add' %}" class="btn btn-sm btn-primary mt-2">Add Savings Goal</a>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Raw Chart Data -->
+<script type="application/json" id="chart-data-raw">
+    {{ chart_data|safe }}
+</script>
+
+<script src="{% static 'js/dashboard.js' %}"></script>
+{% endblock %}

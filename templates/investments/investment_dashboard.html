@@ -1,0 +1,214 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Investments - FinanceTracker{% endblock %}
+
+{% block content %}
+<div class="container-fluid p-0">
+    <div class="d-flex align-items-center justify-content-between mb-4">
+        <h3 class="fw-bold m-0">Investment Portfolio</h3>
+        <div class="d-flex gap-2">
+            <a href="{% url 'sip_add' %}" class="btn btn-outline-primary fw-semibold">
+                <i class="fa-solid fa-plus me-2"></i>Add SIP
+            </a>
+            <a href="{% url 'stock_add' %}" class="btn btn-primary-custom">
+                <i class="fa-solid fa-plus me-2"></i>Add Stock
+            </a>
+        </div>
+    </div>
+
+    <!-- Portfolio Summary Cards -->
+    <div class="row g-4 mb-5">
+        <div class="col-md-4">
+            <div class="finance-card card-primary">
+                <span class="text-secondary text-uppercase fw-semibold" style="font-size: 0.75rem;">Total Capital Invested</span>
+                <h3 class="mt-2 mb-1 fw-bold">{{ currency_symbol }}{{ total_invested|floatformat:2 }}</h3>
+                <span class="text-secondary" style="font-size: 0.8rem;">Cumulative cost basis</span>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="finance-card card-info">
+                <span class="text-secondary text-uppercase fw-semibold" style="font-size: 0.75rem;">Current Portfolio Value</span>
+                <h3 class="mt-2 mb-1 fw-bold">{{ currency_symbol }}{{ total_current|floatformat:2 }}</h3>
+                <span class="text-secondary" style="font-size: 0.8rem;">Real-time valuation</span>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="finance-card {% if total_pl >= 0 %}card-success{% else %}card-danger{% endif %}">
+                <span class="text-secondary text-uppercase fw-semibold" style="font-size: 0.75rem;">Net Performance (P&L)</span>
+                <h3 class="mt-2 mb-1 fw-bold {% if total_pl >= 0 %}text-success{% else %}text-danger{% endif %}">
+                    {{ currency_symbol }}{{ total_pl|floatformat:2 }}
+                </h3>
+                <span class="{% if total_pl >= 0 %}text-success{% else %}text-danger{% endif %} fw-semibold" style="font-size: 0.85rem;">
+                    <i class="fa-solid {% if total_pl >= 0 %}fa-caret-up{% else %}fa-caret-down{% endif %} me-1"></i>
+                    {{ total_pl_pct|floatformat:2 }}%
+                </span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Section A: SIP Investments -->
+    <div class="row mb-5">
+        <div class="col-12">
+            <div class="finance-card p-0 overflow-hidden">
+                <div class="px-4 py-3 border-bottom d-flex flex-wrap align-items-center justify-content-between gap-3" style="border-color: var(--border-color) !important;">
+                    <h5 class="fw-bold m-0"><i class="fa-solid fa-calendar-days text-primary me-2"></i>Systematic Investment Plans (SIP)</h5>
+                    <div class="d-flex align-items-center gap-3">
+                        <span class="fw-bold text-secondary" style="font-size: 0.9rem;">SIP P&L: 
+                            <span class="{% if sip_pl >= 0 %}text-success{% else %}text-danger{% endif %}">
+                                {{ currency_symbol }}{{ sip_pl|floatformat:2 }} ({{ sip_pl_pct|floatformat:1 }}%)
+                            </span>
+                        </span>
+                        <!-- CSV Import/Export -->
+                        <form method="POST" action="{% url 'import_sips_csv' %}" enctype="multipart/form-data" class="d-flex gap-2 align-items-center">
+                            {% csrf_token %}
+                            <input type="file" name="csv_file" class="form-control form-control-sm" style="max-width: 150px;" required accept=".csv">
+                            <button type="submit" class="btn btn-sm btn-outline-primary" title="Import SIPs CSV">Import</button>
+                        </form>
+                        <a href="{% url 'export_sips_csv' %}" class="btn btn-sm btn-outline-secondary" title="Export SIPs to CSV">Export</a>
+                    </div>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="table align-middle">
+                        <thead>
+                            <tr>
+                                <th>Fund Name</th>
+                                <th>Monthly SIP</th>
+                                <th>Start Date</th>
+                                <th>Total Invested</th>
+                                <th>Current Value</th>
+                                <th>Profit/Loss</th>
+                                <th class="text-end">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for sip in sips %}
+                                <tr>
+                                    <td>
+                                        <span class="fw-bold" style="font-size: 0.95rem;">{{ sip.fund_name }}</span>
+                                    </td>
+                                    <td class="fw-semibold">
+                                        {{ currency_symbol }}{{ sip.monthly_amount|floatformat:2 }}
+                                    </td>
+                                    <td>
+                                        {{ sip.start_date|date:"Y-m-d" }}
+                                    </td>
+                                    <td>
+                                        {{ currency_symbol }}{{ sip.invested_amount|floatformat:2 }}
+                                    </td>
+                                    <td class="fw-semibold">
+                                        {{ currency_symbol }}{{ sip.current_value|floatformat:2 }}
+                                    </td>
+                                    <td class="{% if sip.profit_loss >= 0 %}text-success{% else %}text-danger{% endif %} fw-bold">
+                                        {{ currency_symbol }}{{ sip.profit_loss|floatformat:2 }}
+                                        <span style="font-size: 0.8rem; font-weight: normal;">
+                                            ({{ sip.profit_loss_pct|floatformat:1 }}%)
+                                        </span>
+                                    </td>
+                                    <td class="text-end">
+                                        <a href="{% url 'sip_edit' sip.pk %}" class="btn btn-sm btn-outline-secondary me-1"><i class="fa-solid fa-pen"></i></a>
+                                        <a href="{% url 'sip_delete' sip.pk %}" class="btn btn-sm btn-outline-danger"><i class="fa-solid fa-trash"></i></a>
+                                    </td>
+                                </tr>
+                            {% empty %}
+                                <tr>
+                                    <td colspan="7" class="text-center py-4 text-secondary">
+                                        No active SIP investments found.
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Section B: Stock Portfolio -->
+    <div class="row">
+        <div class="col-12">
+            <div class="finance-card p-0 overflow-hidden">
+                <div class="px-4 py-3 border-bottom d-flex flex-wrap align-items-center justify-content-between gap-3" style="border-color: var(--border-color) !important;">
+                    <h5 class="fw-bold m-0"><i class="fa-solid fa-chart-pie text-primary me-2"></i>Stock Portfolio holdings</h5>
+                    <div class="d-flex align-items-center gap-3">
+                        <span class="fw-bold text-secondary" style="font-size: 0.9rem;">Stock P&L: 
+                            <span class="{% if stock_pl >= 0 %}text-success{% else %}text-danger{% endif %}">
+                                {{ currency_symbol }}{{ stock_pl|floatformat:2 }} ({{ stock_pl_pct|floatformat:1 }}%)
+                            </span>
+                        </span>
+                        <!-- CSV Import/Export -->
+                        <form method="POST" action="{% url 'import_stocks_csv' %}" enctype="multipart/form-data" class="d-flex gap-2 align-items-center">
+                            {% csrf_token %}
+                            <input type="file" name="csv_file" class="form-control form-control-sm" style="max-width: 150px;" required accept=".csv">
+                            <button type="submit" class="btn btn-sm btn-outline-primary" title="Import Stocks CSV">Import</button>
+                        </form>
+                        <a href="{% url 'export_stocks_csv' %}" class="btn btn-sm btn-outline-secondary" title="Export Stocks to CSV">Export</a>
+                    </div>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="table align-middle">
+                        <thead>
+                            <tr>
+                                <th>Stock Name</th>
+                                <th>Symbol</th>
+                                <th>Quantity</th>
+                                <th>Buy Price</th>
+                                <th>Current Price</th>
+                                <th>Invested Value</th>
+                                <th>Current Value</th>
+                                <th>Profit/Loss</th>
+                                <th class="text-end">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for stock in stocks %}
+                                <tr>
+                                    <td>
+                                        <span class="fw-bold" style="font-size: 0.95rem;">{{ stock.stock_name }}</span>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-secondary">{{ stock.symbol }}</span>
+                                    </td>
+                                    <td>
+                                        {{ stock.quantity }}
+                                    </td>
+                                    <td>
+                                        {{ currency_symbol }}{{ stock.buy_price|floatformat:2 }}
+                                    </td>
+                                    <td>
+                                        {{ currency_symbol }}{{ stock.current_price|floatformat:2 }}
+                                    </td>
+                                    <td>
+                                        {{ currency_symbol }}{{ stock.invested_value|floatformat:2 }}
+                                    </td>
+                                    <td class="fw-semibold">
+                                        {{ currency_symbol }}{{ stock.current_value|floatformat:2 }}
+                                    </td>
+                                    <td class="{% if stock.profit_loss >= 0 %}text-success{% else %}text-danger{% endif %} fw-bold">
+                                        {{ currency_symbol }}{{ stock.profit_loss|floatformat:2 }}
+                                        <span style="font-size: 0.8rem; font-weight: normal;">
+                                            ({{ stock.profit_loss_pct|floatformat:1 }}%)
+                                        </span>
+                                    </td>
+                                    <td class="text-end">
+                                        <a href="{% url 'stock_edit' stock.pk %}" class="btn btn-sm btn-outline-secondary me-1"><i class="fa-solid fa-pen"></i></a>
+                                        <a href="{% url 'stock_delete' stock.pk %}" class="btn btn-sm btn-outline-danger"><i class="fa-solid fa-trash"></i></a>
+                                    </td>
+                                </tr>
+                            {% empty %}
+                                <tr>
+                                    <td colspan="9" class="text-center py-4 text-secondary">
+                                        No stock holdings found.
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

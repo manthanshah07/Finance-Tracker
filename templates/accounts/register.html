@@ -1,0 +1,103 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign Up - FinanceTracker</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- FontAwesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+<body class="auth-wrapper">
+    <div class="auth-card text-center" style="max-width: 520px;">
+        <div class="mb-4">
+            <h2 class="auth-title fw-bold text-white"><i class="fa-solid fa-wallet text-primary me-2"></i>FinanceTracker</h2>
+            <p class="text-secondary mt-1">Create an account to start tracking your finances</p>
+        </div>
+
+        <form method="POST" class="text-start">
+            {% csrf_token %}
+            
+            {% if form.errors %}
+                <div class="alert alert-danger bg-danger text-white border-0 py-2" style="font-size: 0.85rem;">
+                    Please correct the errors below.
+                </div>
+            {% endif %}
+
+            <div class="row g-3">
+                <div class="col-sm-6">
+                    <div class="mb-3">
+                        <label class="form-label text-light" style="font-size: 0.8rem;">First Name</label>
+                        {{ form.first_name }}
+                        {% if form.first_name.errors %}
+                            <div class="text-danger" style="font-size: 0.75rem;">{{ form.first_name.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="col-sm-6">
+                    <div class="mb-3">
+                        <label class="form-label text-light" style="font-size: 0.8rem;">Last Name</label>
+                        {{ form.last_name }}
+                        {% if form.last_name.errors %}
+                            <div class="text-danger" style="font-size: 0.75rem;">{{ form.last_name.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label text-light" style="font-size: 0.8rem;">Username</label>
+                {{ form.username }}
+                {% if form.username.errors %}
+                    <div class="text-danger" style="font-size: 0.75rem;">{{ form.username.errors.0 }}</div>
+                {% endif %}
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label text-light" style="font-size: 0.8rem;">Email Address</label>
+                {{ form.email }}
+                {% if form.email.errors %}
+                    <div class="text-danger" style="font-size: 0.75rem;">{{ form.email.errors.0 }}</div>
+                {% endif %}
+            </div>
+
+            <div class="row g-3 mb-4">
+                <div class="col-sm-6">
+                    <div class="mb-3">
+                        <label class="form-label text-light" style="font-size: 0.8rem;">Password</label>
+                        {{ form.password }}
+                        {% if form.password.errors %}
+                            <div class="text-danger" style="font-size: 0.75rem;">{{ form.password.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="col-sm-6">
+                    <div class="mb-3">
+                        <label class="form-label text-light" style="font-size: 0.8rem;">Confirm Password</label>
+                        {{ form.confirm_password }}
+                        {% if form.confirm_password.errors %}
+                            <div class="text-danger" style="font-size: 0.75rem;">{{ form.confirm_password.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <button type="submit" class="btn btn-primary-custom w-100 py-2.5 mb-3 fw-bold">Sign Up</button>
+        </form>
+
+        <p class="text-secondary m-0" style="font-size: 0.9rem;">
+            Already have an account? <a href="{% url 'login' %}" class="text-primary fw-semibold text-decoration-none">Sign In</a>
+        </p>
+    </div>
+
+    <!-- Apply dark styles to input elements dynamically -->
+    <script>
+        document.querySelectorAll('.auth-card form input').forEach(input => {
+            input.classList.add('auth-input');
+        });
+    </script>
+</body>
+</html>

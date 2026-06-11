@@ -1,0 +1,79 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ action }} Stock - FinanceTracker{% endblock %}
+
+{% block content %}
+<div class="container-fluid p-0" style="max-width: 600px;">
+    <h3 class="fw-bold mb-4">{{ action }} Stock Position</h3>
+
+    <div class="finance-card">
+        <form method="POST">
+            {% csrf_token %}
+            
+            {% if form.errors %}
+                <div class="alert alert-danger bg-danger text-white border-0 py-2 mb-3" style="font-size: 0.85rem;">
+                    Please correct the errors below.
+                </div>
+            {% endif %}
+
+            <div class="row g-3">
+                <div class="col-md-8">
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold" style="font-size: 0.9rem;">Stock Name</label>
+                        {{ form.stock_name }}
+                        {% if form.stock_name.errors %}
+                            <div class="text-danger mt-1" style="font-size: 0.8rem;">{{ form.stock_name.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold" style="font-size: 0.9rem;">Symbol</label>
+                        {{ form.symbol }}
+                        {% if form.symbol.errors %}
+                            <div class="text-danger mt-1" style="font-size: 0.8rem;">{{ form.symbol.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label fw-semibold" style="font-size: 0.9rem;">Quantity</label>
+                {{ form.quantity }}
+                {% if form.quantity.errors %}
+                    <div class="text-danger mt-1" style="font-size: 0.8rem;">{{ form.quantity.errors.0 }}</div>
+                {% endif %}
+            </div>
+
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold" style="font-size: 0.9rem;">Buy Price</label>
+                        {{ form.buy_price }}
+                        {% if form.buy_price.errors %}
+                            <div class="text-danger mt-1" style="font-size: 0.8rem;">{{ form.buy_price.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold" style="font-size: 0.9rem;">Current Price</label>
+                        {{ form.current_price }}
+                        {% if form.current_price.errors %}
+                            <div class="text-danger mt-1" style="font-size: 0.8rem;">{{ form.current_price.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <div class="d-flex align-items-center justify-content-between mt-4 border-top pt-4" style="border-color: var(--border-color) !important;">
+                <a href="{% url 'investment_dashboard' %}" class="btn btn-outline-secondary fw-semibold">
+                    Cancel
+                </a>
+                <button type="submit" class="btn btn-primary-custom px-4">{{ action }} Stock</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
